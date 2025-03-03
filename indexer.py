@@ -1,8 +1,10 @@
 import json
-from bs4 import BeautifulSoup # O(n) bc you are parsing HTML, where n is the length of the content
-import re # O(n) -> n is the length of input string
-from nltk.stem import PorterStemmer # O(n) where n is the length of the word being stemmed
-from collections import defaultdict # O(1) checking the key and value
+# O(n) bc you are parsing HTML, where n is the length of the content
+from bs4 import BeautifulSoup
+import re  # O(n) -> n is the length of input string
+# O(n) where n is the length of the word being stemmed
+from nltk.stem import PorterStemmer
+from collections import defaultdict  # O(1) checking the key and value
 import os
 
 '''
@@ -27,6 +29,8 @@ will make the inverted index.
 '''
 
 stemmer = PorterStemmer()
+doc_id_to_url = {} #dict to keep track of urls to doc_id
+
 
 def read_json_file(filepath):
     '''
@@ -42,7 +46,7 @@ def read_json_file(filepath):
         with open(filepath, 'r', encoding='utf-8') as file:
             data = json.load(file)
             # specifically need to get the content section inside the .json file
-            return data.get("content", "")
+            return data.get("content", ""), data.get("url", "")
     # error case
     except Exception as e:
         print(f"Error reading {filepath}: {e}")
@@ -53,11 +57,10 @@ def extract_text_from_html(htmlContent):
     '''
     After extracting the HTML from the json file, we need to extract the USEFUL text 
     from the HTML content of the webpage. 
-    
+
     - What is considered useful? Article content, paragraphs, title, headings, bold text
-    - What is not considered useful? <script>, <style>, home, contact us, buy now, copyright 
-                                     notices, etc.
-    
+    - What is not considered useful? <script>, <style>, home, contact us, buy now, copyright notices, etc.
+
     Return:
         resultDict dictionary that has the text and keyText
 
@@ -70,36 +73,36 @@ def extract_text_from_html(htmlContent):
 
         # using beautifulsoup object to parse the HTML
         # beautifulsoup is used to specifically parse HTML documentts
-        soup = BeautifulSoup(htmlContent, 'html.parser') # O(n)
+        soup = BeautifulSoup(htmlContent, 'html.parser')  # O(n)
 
         # need to remove script and style since no useful info
-        for tag in soup(["script", "style"]): # O(n)
+        for tag in soup(["script", "style"]):  # O(n)
             tag.extract()
 
         # extract the visible text and using seperator to seperate it with spaces
-        text = soup.get_text(separator=" ") # O(n)
+        text = soup.get_text(separator=" ")  # O(n)
         # print(text)
 
         keyElements = []
         title = ""
 
         if soup.title and soup.title.string:
-            # need to trip the page title
-            title = soup.title.string.strip() # O(1)
-        
+            # need to strip the page title
+            title = soup.title.string.strip()  # O(1)
+
         # need to extract all the headings (h1, h2, h3) for the main sections
         headings = []
-        for h in soup.find_all(["h1", "h2", "h3"]): # O(n)
+        for h in soup.find_all(["h1", "h2", "h3"]):  # O(n)
             # calling strip fucntion
-            headingText = h.get_text(separator=" ").strip()  
-            # adding tot the list
+            headingText = h.get_text(separator=" ").strip()
+            # adding to the list
             headings.append(headingText)
-        #print(headings)
-        
+        # print(headings)
+
         # extracting the bold and emphasized text
         boldText = []
-        for b in soup.find_all(["b", "strong"]): # O(n)
-            boldTextContent = b.get_text(separator=" ").strip()  
+        for b in soup.find_all(["b", "strong"]):  # O(n)
+            boldTextContent = b.get_text(separator=" ").strip()
             boldText.append(boldTextContent)
         # print(boldText)
 
@@ -108,15 +111,15 @@ def extract_text_from_html(htmlContent):
             keyElements.append(title)
         keyElements.extend(headings)
         keyElements.extend(boldText)
-        
+
         # join everything into single string
-        keyText = " ".join(filter(None, keyElements)).strip() # O(n)
-        
+        keyText = " ".join(filter(None, keyElements)).strip()  # O(n)
+
         result = {
-            "text": text.strip(),  
-            "keyText": keyText 
+            "text": text.strip(),
+            "keyText": keyText
         }
-        
+
         return result
     except Exception as e:
         print(f"Error extracting text from HTML: {e}")
@@ -130,7 +133,7 @@ def tokenize_and_normalize(text):
 
     Return:
         Get the list of processed tokens after using the porter stemming.
-    
+
     Time Complexity:
     - O(n): regex tokenization where n is the length of the input text
     - O(n): porter stemming where n is the length of each word
@@ -138,15 +141,16 @@ def tokenize_and_normalize(text):
     '''
 
     # need to call the findall method and extract
-    tokens = re.findall(r'\b\w+\b', text.lower()) # O(n)
+    tokens = re.findall(r'\b\w+\b', text.lower())  # O(n)
 
     stemmed_tokens = []
-    for token in tokens: # O(n)
+    for token in tokens:  # O(n)
         # call the porterstemmer to reduce the token to its root
-        stemmed_token = stemmer.stem(token) # O(n)
+        stemmed_token = stemmer.stem(token)  # O(n)
         stemmed_tokens.append(stemmed_token)
-    #print(stemmed_tokens)
+    # print(stemmed_tokens)
     return stemmed_tokens
+
 
 def build_inverted_index(doc_id, tokens, inverted_index):
     '''
@@ -167,10 +171,10 @@ def build_inverted_index(doc_id, tokens, inverted_index):
     '''
     # need to count how many times each word appears in doc id
     term_frequency = defaultdict(int)
-    for token in tokens: # O(n)
-        term_frequency[token] += 1 # O(1)
-    for token, tf in term_frequency.items(): # O(n)
-        inverted_index[token][doc_id] = tf # O(1)
+    for token in tokens:  # O(n)
+        term_frequency[token] += 1  # O(1)
+    for token, tf in term_frequency.items():  # O(n)
+        inverted_index[token][doc_id] = tf  # O(1)
 
 
 def save_partial_index(inverted_index, part_num):
@@ -195,19 +199,20 @@ def save_partial_index(inverted_index, part_num):
     '''
     # save the file as partial_index...
     outputFileName = f"partial_index_{part_num}.json"
-    
+
     indexDict = {}
-    for token, postings in inverted_index.items(): # O(n)
+    for token, postings in inverted_index.items():  # O(n)
         # converting the default dict to the regular dictionary
         indexDict[token] = dict(postings)
-    
+
     # creating the dictionary to the JSON file
-    with open(outputFileName, "w", encoding="utf-8") as f: # O(n)
+    with open(outputFileName, "w", encoding="utf-8") as f:  # O(n)
         json.dump(indexDict, f, indent=4)
-    
+
     # confirmation message so you know where the partial index is saved
     print(f"\nPartial index saved to {outputFileName}\n")
     return outputFileName
+
 
 def process_all_documents(directory):
     '''
@@ -228,14 +233,16 @@ def process_all_documents(directory):
     part_num = 1
     partialFiles = []
 
-    for root, _, files in os.walk(directory): # O(n)
+    for root, _, files in os.walk(directory):  # O(n)
         # going through the subdirectories and files in the DEV folder
-        for file in files: # O(n)
+        for file in files:  # O(n)
             if file.endswith(".json"):
                 filePath = os.path.join(root, file)
-                #print(filePath)
-                htmlContent = read_json_file(filePath)
-                #print(htmlContent)
+                # print(filePath)
+                htmlContent, urlContent = read_json_file(filePath)
+                doc_id_to_url[filePath] = urlContent
+
+                # print(htmlContent)
                 if not htmlContent:
                     continue
                 # call all the methods to get the inverted index
@@ -249,7 +256,8 @@ def process_all_documents(directory):
                     print(f"Processed {numOfDocuments} documents..")
 
                 if numOfDocuments % 10000 == 0:
-                    partialFilename = save_partial_index(invertedIndex, part_num)
+                    partialFilename = save_partial_index(
+                        invertedIndex, part_num)
                     partialFiles.append(partialFilename)
                     part_num += 1
                     # need to free memory for the current inverted index
@@ -262,6 +270,7 @@ def process_all_documents(directory):
 
     print(f"\nTotal Processed Documents: {numOfDocuments}")
     return partialFiles, numOfDocuments
+
 
 def merge_partial_indexes(partial_files, output_filename="final_inverted_index.json"):
     '''
@@ -279,7 +288,7 @@ def merge_partial_indexes(partial_files, output_filename="final_inverted_index.j
     finalIndex = defaultdict(lambda: defaultdict(int))
 
     # looping through every partial index file
-    for partial in partial_files: # O(n)
+    for partial in partial_files:  # O(n)
         # opening and reading it through the open method
         with open(partial, "r", encoding="utf-8") as f:
             # loading the contents into the partialIndex
@@ -292,11 +301,14 @@ def merge_partial_indexes(partial_files, output_filename="final_inverted_index.j
 
     # writing the final merged inverted index in the json file
     with open(output_filename, "w", encoding="utf-8") as f:
-        json.dump({token: dict(postings) for token, postings in finalIndex.items()}, f, indent=4)
+        json.dump({token: dict(postings)
+                   for token, postings in finalIndex.items()}, f, indent=4)
     print(f"Inverted index saved to {output_filename}")
 
+    return finalIndex
 
-def generate_report(filename, num_docs):
+
+def generate_report(filename, num_docs, top_docs, doc_id_to_url):
     '''
     This is the generate report that has the summary of the num of documents that were indexed, 
     the count of the uqnique tokens, and the size of the index file.
@@ -304,7 +316,7 @@ def generate_report(filename, num_docs):
     try:
         with open(filename, "r", encoding="utf-8") as f:
             invertedIndex = json.load(f)
-        
+
         uniqueTokens = len(invertedIndex)
         # calculating it in kilobytes
         fileSize = os.path.getsize(filename) / 1024
@@ -313,6 +325,9 @@ def generate_report(filename, num_docs):
         print(f"Total Documents Indexed: {num_docs}")
         print(f"Unique Tokens: {uniqueTokens}")
         print(f"Index File Size: {fileSize:.2f} KB")
+        print(f"\nTop 5 URLs for query: {queries}")
+        for rank, doc_id in enumerate(top_docs, start=1):
+            print(f"{rank}. {doc_id_to_url.get(doc_id, 'URL Not Found')}")
 
         # writing the report in the report.txt so it is easier to view the results
         with open("report.txt", "w") as f:
@@ -320,26 +335,66 @@ def generate_report(filename, num_docs):
             f.write(f"Total Documents Indexed: {num_docs}\n")
             f.write(f"Unique Tokens: {uniqueTokens}\n")
             f.write(f"Index File Size: {fileSize:.2f} KB\n")
-    
+            f.write(f"\nTop 5 URLs for query: {queries}\n")
+            for rank, doc_id in enumerate(top_docs, start=1):
+                f.write(f"{rank}. {doc_id_to_url.get(doc_id, 'URL Not Found')}\n")
+
     except Exception as e:
         print(f"Error generating report: {e}")
+
+
+def Bool_Search(queries, inverted_index):
+    tokens = tokenize_and_normalize(queries)
+    print("search tokens:", tokens)
+
+    if len(tokens) > 1:
+        result_docs = set(inverted_index.get(tokens[0], {}).keys())
+        for token in tokens[1:]:
+            result_docs.intersection_update(
+                inverted_index.get(token, {}).keys())
+        return result_docs
+    else:
+        # For single token search, just return the documents containing the token
+        return set(inverted_index.get(tokens[0], {}).keys())
+    
+def print_top_5_urls(result_docs, inverted_index):
+
+    # Rank results based on term frequency (sum of term frequencies in the query)
+    ranked_docs = sorted(
+        result_docs,
+        key=lambda doc: sum(inverted_index[token].get(doc, 0) for token in tokenize_and_normalize(queries)),
+        reverse=True  # Higher frequency = higher relevance
+    )
+
+    # Get the top 5 document IDs
+    top_docs = ranked_docs[:5]
+
+    return top_docs
+
 
 if __name__ == "__main__":
 
     # Testing read_json_file:
-    sampleFile = "/Users/ashritakuppili/Desktop/Inf121/project3/DEV/evoke_ics_uci_edu/0a50cb9b6d351654e0af8cbc6d20a6baa593e8c2bf1bef5b5b8d0e88fd2c4977.json"
-    htmlContent = read_json_file(sampleFile)
+    sampleFile = "/Users/leynanguyen/Downloads/DEV/evoke_ics_uci_edu/0a50cb9b6d351654e0af8cbc6d20a6baa593e8c2bf1bef5b5b8d0e88fd2c4977.json"
+    queries = input("Enter your search query...")
+    htmlContent, urlContent = read_json_file(sampleFile)
     # print(htmlContent)
 
     extractedText = extract_text_from_html(htmlContent)
     # print(extractedText)
 
-    projectDirectory = "/Users/ashritakuppili/Desktop/Inf121/project3/DEV"
+    projectDirectory = "/Users/leynanguyen/Downloads/DEV"
     print("\nProccesing the documents in the dataset directory: ")
-    
+
     partialFiles, numOfDocuments = process_all_documents(projectDirectory)
     # print(partialFiles)
     # print(numOfDocuments)
-    merge_partial_indexes(partialFiles)
-    generate_report("final_inverted_index.json", numOfDocuments)
+    Final_Index = merge_partial_indexes(partialFiles)
+
+    #performs boolean search
+    Doc_results = Bool_Search(queries, Final_Index)
+    if Doc_results:
+        Top_Docs = print_top_5_urls(Doc_results, Final_Index)
+    
+    generate_report("final_inverted_index.json", numOfDocuments, Top_Docs, doc_id_to_url)
     print("\nIndex process completed")
