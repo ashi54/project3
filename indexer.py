@@ -1,6 +1,6 @@
 import json
 # O(n) bc you are parsing HTML, where n is the length of the content
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup #this won't run with python3, must run as python
 import re  # O(n) -> n is the length of input string
 # O(n) where n is the length of the word being stemmed
 from nltk.stem import PorterStemmer
