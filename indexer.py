@@ -398,3 +398,5 @@ if __name__ == "__main__":
     
     generate_report("final_inverted_index.json", numOfDocuments, Top_Docs, doc_id_to_url)
     print("\nIndex process completed")
+
+    #hello there
