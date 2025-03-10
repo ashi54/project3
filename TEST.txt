@@ -1,0 +1,54 @@
+Test Queries and Performance Analysis
+
+Test Queries (20 total):
+1. ACM
+2. machine learning
+3. cristina lopes
+4. master of software engineering
+5. artificial intelligence
+6. UCI
+7. internet of things
+8. networking
+9. cybersecurity
+10. ICSSC
+11. michael shindler
+12. alexander ihler
+13. iftekhar ahmed
+14. kalev kask
+15. jennifer wong-ma
+16. informatics
+17. database
+18. donald bren
+19. howard gillman
+20. software engineering
+
+______________________________________________________________________________________
+
+Analysis & Observations
+
+When we first started the search engine, some queries did not perform well because we 
+did not use TF-IDF weighting. These were some of the search queries that had in poor 
+results:
+
+-> ACM, machine learning, artificial intelligence, networking, master of software 
+   engineering
+
+These are broad and commonly used terms, meaning they appeared in many documents, which 
+led to similar rankings across multiple pages. Since our initial approach relied purely 
+on word frequency, documents that mentioned these terms the most were ranked higher—even 
+if when they were not the most relevant to the query.
+
+We even noticed that  longer multi-word queries like “master of software engineering”,  
+also performed poorly. This happened because our search engine was treating each word 
+separately, often returning results that contained just one or two words from the query 
+instead of prioritizing documents where the entire phrase appeared in the right context.
+________________________________________________________________________________________
+
+How We Improved It
+
+After implementing TF-IDF weighting, we saw a major improvement in the accuracy of 
+search rankings. TF-IDF helped us reduce the weight of the generic words while giving 
+more importance to the unique and meaningful terms in a query. This adjustment allowed 
+the search engine to focus on relevance rather than just frequency. Now, searches for 
+terms like "machine learning" or "database" return more accurate and relevant results. 
+Overall, TF-IDF made the search results significantly smarter and more reliable.
