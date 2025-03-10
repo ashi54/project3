@@ -1,6 +1,6 @@
 Web Crawler and Search Engine
 
-The M3 project is about web crawler and search engine that processes a dataset of 
+The M3 project is about a web crawler and search engine that processes a dataset of 
 ICS web pages, extracts and indexes their content, and enables efficient searching 
 using TF-IDF ranking. There are 3 parts to the project:
 
