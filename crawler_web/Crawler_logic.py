@@ -118,7 +118,10 @@ def tokenize_and_normalize(text):
 
 def build_inverted_index(doc_id, tokens, key_tokens, inverted_index):
     '''
-    Here, you need to build the inverted index with the token occurances from a given document
+    Here, I am constructing the inverted index for a given document. This method counts 
+    the occurrences of each token, calculates the term frequency (TF), and applies 
+    TF-IDF weighting to improve ranking accuracy. Words that appear in important 
+    sections(titles, headings, bold text) are given higher weight.
 
     doc_id = "/DEV/evoke_ics_uci_edu/page1.json"
     tokens = ['hello', 'world', 'hello']
@@ -129,9 +132,10 @@ def build_inverted_index(doc_id, tokens, key_tokens, inverted_index):
         }
 
     Time Complexity:
-    - O(n): counting the term frequencies where n is the num of tokens
-    - O(1): inserting the inverted index (individual)
-    - Total: O(n + 1) = big O(n)
+    - O(n): counting term frequencies (where n is the number of tokens in the document)
+    - O(1): updating the inverted index for each token
+    - O(n): calculating document length for normalization
+    - Total: O(n + 1 + n) = O(n)
     '''
     term_frequency = defaultdict(int)
 
@@ -179,7 +183,6 @@ def save_partial_index(inverted_index, part_num):
     O(n): converting to a dictionary where the n is the number of tokens
     O(n): writing the file where n is the size of the output file
     Total: O(n + n) = big O(n)
-
     '''
     output_filename = f"partial_index_{part_num}.json"
 
@@ -273,9 +276,17 @@ def merge_partial_indexes(partial_files, output_filename="final_inverted_index.j
 
 def Bool_Search(queries, inverted_index):
     '''
-    Performs Boolean search.
+    Here, I am performing a Boolean search on the inverted index. Given a query, the function 
+    finds all documents that contain the query terms. It normalizes and tokenizes the query, 
+    then looks up the index to retrieve relevant document sets. The results are computed 
+    using set intersection, ensuring that only documents containing all query terms are 
+    returned.
 
-    Time Complexity: O(n)
+    Time Complexity:
+    O(n): tokenizing and normalizing the query terms
+    O(n): retrieving the document sets from the inverted index
+    O(n): performing set intersection on the retrieved sets
+    Total: O(n + n + n) = O(n)
     '''
     tokens = tokenize_and_normalize(queries)
     print("Search tokens:", tokens)
@@ -295,7 +306,15 @@ def Bool_Search(queries, inverted_index):
 
 def print_top_5_urls(result_docs, inverted_index, query):
     '''
-    Ranks search results and prints top 5 URLs.
+    This function ranks and retrieves the top 5 most relevant URLs based on a search query. 
+    The ranking is determined using **TF-IDF scores**, ensuring the most meaningful matches 
+    appear first.
+
+    Time Complexity:
+    - O(n): Tokenizing and normalizing the query (where n is the query length).
+    - O(m): Summing TF-IDF scores for all matched documents (where m is the number of docs).
+    - O(m log m): Sorting the documents by score.
+    - Total: O(m log m)** (due to sorting step).
     '''
     query_tokens = tokenize_and_normalize(query)
 

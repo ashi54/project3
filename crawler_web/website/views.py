@@ -4,12 +4,15 @@ from Crawler_logic import Bool_Search, print_top_5_urls, merge_partial_indexes, 
 views = Blueprint('views', __name__)
 
 # Process documents and build the final index
-project_directory = "/Users/ashritakuppili/Desktop/Inf121/crawler_web/DEV" #change to directory where files are stored at
+project_directory = "/Users/ashritakuppili/Desktop/Inf121/project3/crawler_web/DEV" #change to directory where files are stored at
 partial_files = process_all_documents(project_directory)
 final_index = merge_partial_indexes(partial_files)
 
 @views.route('/', methods=['GET', 'POST'])
 def home():
+    '''
+    This function handles the user search queries through a web interface.
+    '''
     query = ''
     top_urls = []
 
