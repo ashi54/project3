@@ -123,13 +123,30 @@ def build_inverted_index(doc_id, tokens, key_tokens, inverted_index):
     TF-IDF weighting to improve ranking accuracy. Words that appear in important 
     sections(titles, headings, bold text) are given higher weight.
 
+    Stop words: do not use stopping while indexing, i.e. use all words, even
+                the frequently occurring ones
+
     doc_id = "/DEV/evoke_ics_uci_edu/page1.json"
-    tokens = ['hello', 'world', 'hello']
-    inverted_index = 
-        {
-        'hello': {'doc1.json': 2},
-        'world': {'doc1.json': 1}
-        }
+    tokens = ['machine', 'learning', 'the', 'machine', 'AI', 'a', 'the']
+    key_tokens = ["AI", "learning"]
+    inverted_index = defaultdict(lambda: defaultdict(float))
+
+    TERM-FREQUENCY = 0.5 + (0.5 * (wordcount/ (maxwordcount))
+        -> maxwordcount means the highest number (nax) of word count (machine and the has 2 so 2)
+            -> 2 for all the 5 calculations 
+        -> TF (machine) = 0.5 + (0.5 * (2/ (maxwordcount = 2))
+    build_inverted_index(doc_id, tokens, key_tokens, inverted_index)
+
+    If the key_tokens are in tokens, then *2 their TERM-FREQEUNCY value to consider their weight
+
+    FINAL INVERTED INDEX OUTPUT:
+    {
+        "machine": {"doc1.json": 1.0},
+        "learning": {"doc1.json": 1.5},
+        "the": {"doc1.json": 1.0},
+        "AI": {"doc1.json": 1.5},
+        "a": {"doc1.json": 0.75}
+    }
 
     Time Complexity:
     - O(n): counting term frequencies (where n is the number of tokens in the document)
@@ -144,7 +161,8 @@ def build_inverted_index(doc_id, tokens, key_tokens, inverted_index):
 
     if not term_frequency:  
         return  
-
+    
+    # gets the highest frequency of any term in the document and use that for the normalize term frequency
     max_tf = max(term_frequency.values()) 
 
     for token, freq in term_frequency.items():
@@ -154,10 +172,12 @@ def build_inverted_index(doc_id, tokens, key_tokens, inverted_index):
         tf = 0.5 + (0.5 * freq / max_tf)  
 
         if token in key_tokens:
+            # doubling the weight of the term feruqency if they are one of the key terms
             tf *= 2  
 
         inverted_index[token][doc_id] += tf
 
+    # this is a way of measuring how strong or big the document is 
     sum_of_squares = 0
     for tf in term_frequency.values():
         sum_of_squares += tf ** 2
@@ -167,11 +187,14 @@ def build_inverted_index(doc_id, tokens, key_tokens, inverted_index):
 
 def save_partial_index(inverted_index, part_num):
     '''
-    This method saves a portion of the inverted index into a json file on a disk and returns 
+    This method saves a portion of the inverted index into a json file on a DISK and returns 
     the filename of the saved partial index. Using part_num as the part number representing
     the counter for which part the inverted index is being saved (prevents memory overflow)
     Eg. partial_index_1.json, partial_index_2.json, etc.
 
+    Need to use it bc the dataset is too large so you can't store everything in memory
+        -> break everything into chunks and merge them later so more efficient for MANY PAGES
+        
     inverted_index = 
         {
         'hello': {'doc1.json': 2},
@@ -219,11 +242,13 @@ def process_all_documents(directory):
                 content, url = read_json_file(file_path)
                 if not content:
                     continue
-
+                
+                # main implementation that calls all the methods from above
                 text, key_text = extract_text_from_html(content)
                 tokens = tokenize_and_normalize(text)
                 key_tokens = tokenize_and_normalize(key_text)
 
+                # calling the build_inverted_index method that processes everything in the for loop 
                 build_inverted_index(file_path, tokens, key_tokens, inverted_index)
                 doc_id_to_url[file_path] = url
                 doc_count += 1
