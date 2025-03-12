@@ -247,7 +247,7 @@ def process_all_documents(directory):
                 text, key_text = extract_text_from_html(content)
                 tokens = tokenize_and_normalize(text)
                 key_tokens = tokenize_and_normalize(key_text)
-
+                
                 # calling the build_inverted_index method that processes everything in the for loop 
                 build_inverted_index(file_path, tokens, key_tokens, inverted_index)
                 doc_id_to_url[file_path] = url
